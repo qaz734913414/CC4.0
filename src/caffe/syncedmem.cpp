@@ -51,9 +51,12 @@ inline void SyncedMemory::to_cpu() {
 }
 
 inline void SyncedMemory::to_gpu() {
+	//static long size_total = 0;
 #ifndef CPU_ONLY
   switch (head_) {
   case UNINITIALIZED:
+	 // size_total += size_;
+	  //printf("cudaMalloc: %ld bytes(%.2f MB)[%.2f GB]\n", size_, size_ / (double)(1024 * 1024), size_total / (double)(1024 * 1024 * 1024));
     CUDA_CHECK(cudaGetDevice(&gpu_device_));
     CUDA_CHECK(cudaMalloc(&gpu_ptr_, size_));
     caffe_gpu_memset(size_, 0, gpu_ptr_);

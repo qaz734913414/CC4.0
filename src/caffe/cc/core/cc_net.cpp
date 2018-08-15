@@ -1,6 +1,22 @@
 
-#include "caffe/net.hpp"
 #include "caffe/cc/core/cc.h"
+#include "caffe/caffe.hpp"
+#include "caffe/common.hpp"
+#include <math.h>
+#include <iostream>
+#include "caffe/net.hpp"
+#include "caffe/util/signal_handler.h"
+#include "caffe/cc/core/cc.h"
+
+#ifdef USE_CC_PYTHON
+#include <memory>
+
+#undef _DEBUG
+#include <Python.h>
+#endif
+
+using namespace std;
+using namespace cv;
 
 namespace cc{
 
@@ -31,6 +47,10 @@ namespace cc{
 		ptr->Forward(loss);
 	}
 
+	size_t Net::memory_used(){
+		return ptr->memory_used_;
+	}
+
 	void Net::copyTrainedParamFromFile(const char* file){
 		ptr->CopyTrainedLayersFrom(file);
 	}
@@ -43,8 +63,22 @@ namespace cc{
 		ptr->CopyTrainedLayersFromData(data, length);
 	}
 
-	Layer* Net::layer_by_name(const char* name){
+	int Net::num_layers(){
+		return ptr->layers().size();
+	}
+
+	Layer* Net::layer(const char* name){
 		return ptr->layer_by_name(name)->ccLayer();
+	}
+
+	Layer* Net::layer(int index){
+		return index < 0 || index >= num_layers() ? 0 : ptr->layers()[index]->ccLayer();
+	}
+
+	CCString Net::layer_name(int index){
+		Layer* l = layer(index);
+		if (l) return l->name();
+		return "";
 	}
 
 	CCAPI void CCCALL releaseNet(Net* net){
@@ -58,8 +92,25 @@ namespace cc{
 		return ptr->has_blob(name);
 	}
 
+	Blob* Net::blob(int index){
+		if (index < 0 || index >= num_blobs())
+			return 0;
+		return ptr->blobs()[index]->ccBlob();
+	}
+
 	bool Net::has_layer(const char* name){
 		return ptr->has_layer(name);
+	}
+
+	int Net::num_blobs(){
+		return ptr->blobs().size();
+	}
+
+	CCString Net::blob_name(int index){
+		if (index < 0 || index >= num_blobs())
+			return "";
+
+		return ptr->blob_names()[index].c_str();
 	}
 
 	int Net::num_input_blobs(){
@@ -96,4 +147,20 @@ namespace cc{
 		caffe::Net<float>* net = new caffe::Net<float>(param, 0);
 		return net->ccNet();
 	}
+
+#ifdef USE_CC_PYTHON
+	CCAPI Net* CCCALL loadNetFromPython(const char* pythonfile, const char* func, int phase){
+		Net* net_ptr = 0;
+		{
+			CCPython pp;
+			bool ok = pp.load(pythonfile);
+			CHECK(ok) << pp.last_error();
+			if (!ok) return 0;
+
+			string prototxt = pp.callstringFunction(func);
+			net_ptr = loadNetFromPrototxtString(prototxt.c_str(), prototxt.size(), phase);
+		}
+		return net_ptr;
+	}
+#endif
 }

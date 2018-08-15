@@ -1,0 +1,9 @@
+﻿/Build_pycaffe/
+/3rd/include
+/3rd/staticlib
+/Build
+*.pdb
+*.opensdf
+*.suo
+*.pdb
+*.sdf

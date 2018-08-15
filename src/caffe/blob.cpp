@@ -72,6 +72,56 @@ Blob<Dtype>::~Blob(){
 	this->ccblob_ = 0;
 }
 
+// jay add
+template <typename Dtype>
+const Dtype* Blob<Dtype>::cpu_data_at(const int n, const int c, const int h, const int w) const {
+	CHECK(data_);
+	return (const Dtype*)data_->cpu_data() + offset(n, c, h, w);
+}
+
+template <typename Dtype>
+const Dtype* Blob<Dtype>::gpu_data_at(const int n, const int c, const int h, const int w) const {
+	CHECK(data_);
+	return (const Dtype*)data_->gpu_data() + offset(n, c, h, w);
+}
+
+template <typename Dtype>
+const Dtype* Blob<Dtype>::cpu_diff_at(const int n, const int c, const int h, const int w) const {
+	CHECK(diff_);
+	return (const Dtype*)diff_->cpu_data() + offset(n, c, h, w);
+}
+
+template <typename Dtype>
+const Dtype* Blob<Dtype>::gpu_diff_at(const int n, const int c, const int h, const int w) const {
+	CHECK(diff_);
+	return (const Dtype*)diff_->gpu_data() + offset(n, c, h, w);
+}
+
+template <typename Dtype>
+Dtype* Blob<Dtype>::mutable_cpu_data_at(const int n, const int c, const int h, const int w) {
+	CHECK(data_);
+	return static_cast<Dtype*>(data_->mutable_cpu_data()) + offset(n, c, h, w);
+}
+
+template <typename Dtype>
+Dtype* Blob<Dtype>::mutable_gpu_data_at(const int n, const int c, const int h, const int w) {
+	CHECK(data_);
+	return static_cast<Dtype*>(data_->mutable_gpu_data()) + offset(n, c, h, w);
+}
+
+template <typename Dtype>
+Dtype* Blob<Dtype>::mutable_cpu_diff_at(const int n, const int c, const int h, const int w) {
+	CHECK(diff_);
+	return static_cast<Dtype*>(diff_->mutable_cpu_data()) + offset(n, c, h, w);
+}
+
+template <typename Dtype>
+Dtype* Blob<Dtype>::mutable_gpu_diff_at(const int n, const int c, const int h, const int w) {
+	CHECK(diff_);
+	return static_cast<Dtype*>(diff_->mutable_gpu_data()) + offset(n, c, h, w);
+}
+// end jay add
+
 template <typename Dtype>
 Blob<Dtype>::Blob(const int num, const int channels, const int height,
     const int width)
